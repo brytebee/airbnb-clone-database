@@ -106,14 +106,34 @@ SHOW INDEX FROM Booking;
 SHOW INDEX FROM Property;
 
 -- Analyze query performance before indexing
-EXPLAIN SELECT * FROM Booking b 
+EXPLAIN ANALYZE SELECT * FROM Booking b 
 JOIN User u ON b.user_id = u.user_id 
 WHERE b.start_date >= '2024-01-01' AND b.status = 'confirmed';
 
 -- Analyze query performance after indexing
-EXPLAIN SELECT * FROM Booking b 
+EXPLAIN ANALYZE SELECT * FROM Booking b 
 JOIN User u ON b.user_id = u.user_id 
 WHERE b.start_date >= '2024-01-01' AND b.status = 'confirmed';
+
+-- Additional performance analysis queries
+EXPLAIN ANALYZE SELECT * FROM Property p 
+JOIN Location l ON p.location_id = l.location_id 
+WHERE l.city = 'New York' AND p.price_per_night BETWEEN 100 AND 300;
+
+EXPLAIN ANALYZE SELECT u.first_name, u.last_name, AVG(r.rating) as avg_rating
+FROM User u 
+JOIN Property p ON u.user_id = p.host_id 
+JOIN Review r ON p.property_id = r.property_id 
+GROUP BY u.user_id, u.first_name, u.last_name 
+ORDER BY avg_rating DESC;
+
+EXPLAIN ANALYZE SELECT p.property_id, p.name, AVG(r.rating) as avg_rating, COUNT(r.review_id) as review_count
+FROM Property p 
+LEFT JOIN Review r ON p.property_id = r.property_id 
+WHERE p.created_at >= '2024-01-01' 
+GROUP BY p.property_id, p.name 
+HAVING COUNT(r.review_id) > 5 
+ORDER BY avg_rating DESC;
 
 -- Monitor index effectiveness
 SELECT 
